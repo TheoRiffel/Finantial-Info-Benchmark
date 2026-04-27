@@ -89,6 +89,9 @@ class HybridSearcher:
         ordered = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         return [(cid, sc, d_ranks.get(cid), s_ranks.get(cid)) for cid, sc in ordered]
 
+    def close(self) -> None:
+        self.qdrant.close()
+
     def search(self, query: str, top_k: int | None = None) -> list[SearchResult]:
         top_k = top_k or config.TOP_K_AFTER_RRF
         dense  = self.dense_search(query, config.TOP_K_DENSE)

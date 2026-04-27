@@ -38,6 +38,9 @@ class PureRAG(BaseArchitecture):
         self._searcher = HybridSearcher()
         self._reranker = Reranker()
 
+    def unload(self) -> None:
+        self._searcher.close()
+
     def run_query(self, question: str) -> BenchmarkRun:
         t_total = time.perf_counter()
 

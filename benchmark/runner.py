@@ -1,112 +1,122 @@
-"""Benchmark runner: iterates architectures × queries, collects metrics, saves JSON."""
+"""Benchmark runner: runs one architecture over an eval set, saves JSONL.
+
+Public API:
+    run_benchmark(arch, queries, use_judge=True) -> list[dict]
+    save_jsonl(rows, arch_name) -> Path
+"""
 import json
-import time
+import pickle
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import config
-from benchmark.judge import judge_answer
+from benchmark.judge import judge
 
 if TYPE_CHECKING:
     from architectures.base import BaseArchitecture
 
-EVAL_PATH = Path(__file__).parent / "eval_set.json"
+RUNS_DIR = config.ROOT / "results" / "runs"
+RUNS_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# ── Heuristic metrics ────────────────────────────────────────────────────────
+# ── Context reconstruction ────────────────────────────────────────────────────
 
-def _topic_coverage(text: str, topics: list[str]) -> float:
-    if not topics:
-        return 1.0
-    t = text.lower()
-    return sum(1 for topic in topics if topic.lower() in t) / len(topics)
-
-
-def _ticker_recall(text: str, tickers: list[str]) -> float:
-    if not tickers:
-        return 1.0
-    t = text.upper()
-    return sum(1 for ticker in tickers if ticker.upper() in t) / len(tickers)
+def _load_chunks() -> dict[str, dict]:
+    path = config.INDEX_DIR / "chunks.pkl"
+    if not path.exists():
+        return {}
+    with open(path, "rb") as f:
+        return {c["chunk_id"]: c for c in pickle.load(f)}
 
 
-# ── Main runner ──────────────────────────────────────────────────────────────
+def _build_context(row: dict, chunks_by_id: dict[str, dict]) -> str:
+    ids = (row.get("retrieved_ids") or []) + (row.get("accessed_ids") or [])
+    parts: list[str] = []
+    for cid in ids[:10]:
+        c = chunks_by_id.get(cid)
+        if c:
+            parts.append(f"[{c['doc_title']}]\n{c['raw_text'][:600]}")
+    return "\n\n---\n\n".join(parts)
+
+
+# ── Runner ────────────────────────────────────────────────────────────────────
 
 def run_benchmark(
-    architectures: "list[BaseArchitecture]",
+    arch: "BaseArchitecture",
+    queries: list[dict],
     use_judge: bool = True,
-) -> dict:
-    with open(EVAL_PATH) as f:
-        queries = json.load(f)["queries"]
+) -> list[dict]:
+    """Run `arch` over `queries`. Returns one row dict per query."""
+    chunks_by_id = _load_chunks()
+    rows: list[dict] = []
 
-    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results: dict = {
-        "run_id": run_id,
-        "metadata": {
-            "timestamp":  datetime.now().isoformat(),
-            "model":      config.ANTHROPIC_MODEL,
-            "n_queries":  len(queries),
-        },
-        "architectures": {},
-    }
+    for q in queries:
+        print(f"\n  [{q['id']}] [{q.get('category', '?')}] {q['question'][:65]}")
+        try:
+            run = arch.run_query(q["question"])
+            row = asdict(run)
+        except Exception as exc:
+            print(f"    ERROR: {exc}")
+            row = {
+                "answer": "", "retrieved_ids": [], "accessed_ids": [],
+                "latency": {}, "tokens": {}, "cost_usd": 0.0,
+                "tool_calls": 0, "error": str(exc), "metadata": {},
+            }
 
-    for arch in architectures:
-        print(f"\n{'='*60}")
-        print(f"  Architecture: {arch.name.upper()}")
-        print(f"{'='*60}")
-        print("  Loading models/index...")
-        arch.load()
+        row.update({
+            "query_id":         q["id"],
+            "question":         q["question"],
+            "category":         q.get("category", ""),
+            "gold_chunk_ids":   q.get("gold_chunk_ids", []),
+            "gold_facts":       q.get("gold_facts", []),
+            "forbidden_claims": q.get("forbidden_claims", []),
+        })
 
-        arch_rows: list[dict] = []
-        for q in queries:
-            print(f"\n  [{q['id']}] {q['question'][:72]}")
-            try:
-                run = arch.run_query(q["question"])
-                row = asdict(run)
-            except Exception as exc:
-                print(f"    ERROR: {exc}")
-                row = {
-                    "answer": "", "retrieved_ids": [], "accessed_ids": [],
-                    "latency": {}, "tokens": {}, "cost_usd": 0.0,
-                    "tool_calls": 0, "error": str(exc), "metadata": {},
-                }
-
-            # Attach query context
-            row["query_id"] = q["id"]
-            row["question"] = q["question"]
-
-            # Heuristic metrics
-            ans = row.get("answer", "")
-            row["topic_coverage"] = _topic_coverage(ans, q.get("expected_topics", []))
-            row["ticker_recall"]  = _ticker_recall(ans, q.get("expected_tickers", []))
-            row["citation_count"] = ans.count("[doc_")
-
-            # LLM judge (optional)
-            if use_judge and ans and not row.get("error"):
-                row["judge_scores"] = judge_answer(q["question"], ans)
-            else:
-                row["judge_scores"] = {}
-
-            lat = row.get("latency", {})
-            tok = row.get("tokens", {})
-            print(
-                f"    total={lat.get('total', 0):.1f}s  "
-                f"tokens={tok.get('input', 0)}+{tok.get('output', 0)}  "
-                f"cache_read={tok.get('cache_read', 0)}  "
-                f"tools={row.get('tool_calls', 0)}  "
-                f"cost=${row.get('cost_usd', 0):.4f}"
+        if use_judge and row.get("answer") and not row.get("error"):
+            context = _build_context(row, chunks_by_id)
+            verdict = judge(
+                question=q["question"],
+                gold_facts=q.get("gold_facts", []),
+                forbidden_claims=q.get("forbidden_claims", []),
+                context=context,
+                answer=row["answer"],
             )
-            arch_rows.append(row)
+            row["judge"] = verdict.to_dict()
+        else:
+            row["judge"] = {}
 
-        results["architectures"][arch.name] = arch_rows
+        _print_row(row)
+        rows.append(row)
 
-    return results
+    return rows
 
 
-def save_results(results: dict) -> Path:
-    path = config.ROOT / "results" / f"run_{results['run_id']}.json"
+def _print_row(row: dict) -> None:
+    lat = row.get("latency", {})
+    tok = row.get("tokens", {})
+    j   = row.get("judge", {})
+    parts = [f"    {lat.get('total', 0):.1f}s"]
+    if j:
+        parts += [
+            f"faith={j.get('faithfulness', 0):.2f}",
+            f"corr={j.get('correctness', 0):.2f}",
+            f"hall={j.get('hallucination_count', 0)}",
+        ]
+    else:
+        parts.append(f"tokens={tok.get('input', 0)}+{tok.get('output', 0)}")
+    parts.append(f"cost=${row.get('cost_usd', 0):.4f}")
+    print("  ".join(parts))
+
+
+# ── Persistence ───────────────────────────────────────────────────────────────
+
+def save_jsonl(rows: list[dict], arch_name: str) -> Path:
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = RUNS_DIR / f"{arch_name}_{ts}.jsonl"
     with open(path, "w") as f:
-        json.dump(results, f, indent=2, default=str)
-    print(f"\n  Results saved → {path}")
+        for row in rows:
+            f.write(json.dumps(row, default=str) + "\n")
+    print(f"  Saved → {path}")
     return path

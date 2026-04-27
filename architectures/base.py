@@ -30,6 +30,9 @@ class BaseArchitecture(ABC):
     def load(self) -> None:
         """Load models/indices once before benchmarking."""
 
+    def unload(self) -> None:
+        """Release resources (e.g. Qdrant file lock) after benchmarking."""
+
     @abstractmethod
     def run_query(self, question: str) -> BenchmarkRun:
         ...

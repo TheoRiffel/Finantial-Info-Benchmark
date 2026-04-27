@@ -39,6 +39,9 @@ class Hybrid(BaseArchitecture):
         self._reranker = Reranker()
         self._corpus.load()
 
+    def unload(self) -> None:
+        self._searcher.close()
+
     def run_query(self, question: str) -> BenchmarkRun:
         t_total = time.perf_counter()
         client = llm.get_client()

@@ -1,0 +1,241 @@
+{
+  "queries": [
+    {
+      "id": "q01",
+      "question": "What was Abbott's quarterly dividend per share after the December 15, 2017 board increase?",
+      "category": "factual_simple",
+      "gold_chunk_ids": [
+        "ebf4384a-f40d-4c6f-bda1-bd659472d49b"
+      ],
+      "gold_facts": [
+        "the board of directors of Abbott increased the company's quarterly dividend to $0.280 per share from $0.265 per share",
+        "On Dec. 15, 2017, the board of directors of Abbott increased the company's quarterly dividend to $0.280 per share"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q02",
+      "question": "What was New Oriental's net revenue for the first six months of fiscal year 2018, and what was the year-over-year percentage increase?",
+      "category": "factual_simple",
+      "gold_chunk_ids": [
+        "b70abdf7-03cf-421f-8485-7fe68a199ce8"
+      ],
+      "gold_facts": [
+        "net revenues of US$1,128.3 million",
+        "representing a 28.9% increase year-over-year"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q03",
+      "question": "According to the UN International Labour Organization and Walk Free Foundation, how many people were living as modern slaves last year?",
+      "category": "factual_simple",
+      "gold_chunk_ids": [
+        "8ce8acec-02e7-4e61-9e08-d967b3d4f958"
+      ],
+      "gold_facts": [
+        "More than 40 million people were living as modern slaves last year",
+        "either trapped in forced labor or forced marriages"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q04",
+      "question": "What was the closing value of the VIX volatility gauge mentioned in this briefing, and what was the previous high it referenced?",
+      "category": "factual_simple",
+      "gold_chunk_ids": [
+        "c28cdcd6-99d0-4a29-b45d-00694b2595f7"
+      ],
+      "gold_facts": [
+        "the ViX volatility gauge to its highest close since Dec. 4 of 11.66 percent",
+        "GE's drop of almost 3 percent",
+        "a huge $11 billion charge on its insurance business"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q05",
+      "question": "Which economic adviser is mentioned as contributing to Trump's State of the Union address?",
+      "category": "factual_simple",
+      "gold_chunk_ids": [
+        "30841700-e1a9-488f-b5d2-737707d1f59c"
+      ],
+      "gold_facts": [
+        "economic adviser Gary Cohn contributed to the speech Trump plans to deliver Tuesday night at the Capitol"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q06",
+      "question": "How do Abbott's and Walmart's approaches to managing their international operations differ in terms of financial performance and strategic actions?",
+      "category": "comparative",
+      "gold_chunk_ids": [
+        "ebf4384a-f40d-4c6f-bda1-bd659472d49b",
+        "78566a2e-bc2f-46a8-9471-a0cb8cfa82bd"
+      ],
+      "gold_facts": [
+        "Abbott generated operating cash flow in excess of $5.0 billion and free cash flow in excess of $4.0 billion for full year 2017, and repaid $4.0 billion of debt in January 2018",
+        "Walmart has struggled in Brazil for a decade with operating losses beginning in 2009, and is now looking to sell a major stake in its Walmart Brasil unit at a potentially discounted valuation"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q07",
+      "question": "What are the key themes and trends that have characterized technology stock performance and investor sentiment across different market cycles and time periods?",
+      "category": "panoramic",
+      "gold_chunk_ids": [
+        "faabc63a-7497-463f-91d3-1da7d8d36fc9",
+        "a3cc3c50-3d45-4b7a-8a58-4491287cadb9",
+        "a91f4ee5-91af-4fca-85e6-cb348aa636f4",
+        "af9cdace-9842-4361-b98a-d5fce09440a3",
+        "72bc19f1-8b4e-46b9-9f95-1bee19b09cc3",
+        "0e8706d9-2d79-446a-8c51-d5abbda6b75e"
+      ],
+      "gold_facts": [
+        "FANG stocks (Facebook, Amazon, Netflix, Google/Alphabet) have provided leadership in the technology sector",
+        "Technology stocks have demonstrated growth stock characteristics similar to traditional growth equities",
+        "Technology companies have been subject to various market cycles including periods of strength and volatility",
+        "Tech sector includes both hardware manufacturers (Apple) and software/services companies with different business models",
+        "Digital transformation and e-commerce adoption have influenced technology stock valuations and investor interest"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q08",
+      "question": "What are the key market trends and investor sentiment shifts in energy and financial markets during the 2018-2023 period, and how do regulatory and ESG concerns impact investment strategies in these sectors?",
+      "category": "panoramic",
+      "gold_chunk_ids": [
+        "8bf50152-389f-4260-9274-bbda35cf0d40",
+        "d87ba2b9-7c0a-4d6c-81d0-71c49f7529db",
+        "2c5cbd42-e32c-4665-b151-80f2f3fff33d",
+        "a8867515-5d68-4bf7-8db4-7579a7d5adcd",
+        "860b8128-56d2-48e4-b789-561c66419747",
+        "63c9783e-ce4e-4de3-9a6f-4b9c1bc08302"
+      ],
+      "gold_facts": [
+        "Oil stocks contributed to UK market gains in early 2018, indicating investor interest in energy sector equities",
+        "Pension funds like ABP began divesting from certain sectors including nuclear-related investments, reflecting growing ESG concerns",
+        "European financial markets experienced volatility with changing monetary policy expectations from central banks affecting currencies and bond yields",
+        "Banking sector performance in 2018 was influenced by rising bond yields and regulatory environment shifts",
+        "Investor risk appetite regarding currency union stability improved significantly from 2012 crisis levels to near-record lows by 2022"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q09",
+      "question": "What is the overall trajectory of central bank monetary policy stance across major economies during this period, and how are financial institutions responding to changing interest rate environments?",
+      "category": "panoramic",
+      "gold_chunk_ids": [
+        "8ebe8945-0571-46ab-a314-c05b042f9d7d",
+        "27ef1dbb-6de9-40de-8c23-57005e139354",
+        "5f89b693-816f-423b-b23e-656c1e2aed93",
+        "4d8b1eba-4e95-42ce-b46f-f0d6d2ece7ba",
+        "b209c00d-63aa-4b88-bbaa-c947d3759c20",
+        "cb9fc5c7-07d6-4fdd-85ea-28205686ada6"
+      ],
+      "gold_facts": [
+        "ECB maintains accommodative monetary policy with no immediate plans for interest rate changes despite analyst expectations",
+        "Fed's monetary policy stance influences asset valuations and dividend decisions at financial institutions like Federated",
+        "Rising interest rate environments create mixed effects across sectors, benefiting some equity asset managers while impacting healthcare and other sectors differently"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q10",
+      "question": "What are the key patterns and recurring themes in how trade policy decisions under Trump administrations have shaped global trade tensions and market responses across different sectors and time periods?",
+      "category": "panoramic",
+      "gold_chunk_ids": [
+        "51a5faf9-bfa7-4119-8de4-6f8763ec3322",
+        "b88a6c15-db70-48ac-bffb-5f20eda2f2dd",
+        "62510542-912e-46b4-a287-b10031678ef6",
+        "fca3587b-1e61-44ac-a4cb-fe999d2d3ecc",
+        "d44f49f6-af61-4626-aadc-424a7f90ec07",
+        "a91f4ee5-91af-4fca-85e6-cb348aa636f4"
+      ],
+      "gold_facts": [
+        "Trump has repeatedly threatened withdrawal from or renegotiation of major trade agreements including NAFTA and has pursued protectionist trade policies",
+        "Trade policy actions by the Trump administration have triggered concerns among world leaders about increased economic protectionism and generated varied market reactions",
+        "Tariff threats and investigations into unfair trade practices, particularly involving China, are considered as potential policy tools affecting multiple economic sectors",
+        "Trade tensions and policy uncertainty create spillover effects across different markets including metals, energy, and financial assets"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q11",
+      "question": "What are the key challenges and opportunities shaping the banking and financial services sector based on recent market developments and executive leadership changes?",
+      "category": "panoramic",
+      "gold_chunk_ids": [
+        "87e96572-19b5-470f-bae2-8ad0901755a1",
+        "bf8afd6a-f8d4-4b20-919e-ab5e434c16c8",
+        "85cab7fa-3ddc-48f0-9678-85f7727c27e4",
+        "d8b3b291-5d23-4e26-a697-c043b5287969",
+        "ddee6cb6-2e21-44ac-8ea0-480e40d1a781",
+        "1fa898b5-6d38-4515-8fe6-dd75dea550c9"
+      ],
+      "gold_facts": [
+        "Major bank CEOs like Richard Fairbank at Capital One have accumulated substantial wealth through equity holdings and compensation, reflecting the profitability of financial institutions",
+        "Banking sector sentiment is influenced by macroeconomic factors including oil markets, geopolitical events like nuclear sanctions policy, and broader retail industry trends",
+        "The financial services industry is experiencing structural shifts between traditional players and new-world digital/online competitors, with implications for bank business models and consumer behavior"
+      ],
+      "forbidden_claims": []
+    },
+    {
+      "id": "q12",
+      "question": "How did Nvidia's H100 GPU sales contribute to its fiscal 2024 revenue?",
+      "category": "insufficient",
+      "gold_chunk_ids": [],
+      "gold_facts": [],
+      "forbidden_claims": [
+        "H100",
+        "fiscal 2024",
+        "Nvidia 2024 revenue"
+      ]
+    },
+    {
+      "id": "q13",
+      "question": "What impact did the collapse of Silicon Valley Bank in March 2023 have on tech startups?",
+      "category": "insufficient",
+      "gold_chunk_ids": [],
+      "gold_facts": [],
+      "forbidden_claims": [
+        "SVB collapse",
+        "Silicon Valley Bank failure 2023"
+      ]
+    },
+    {
+      "id": "q14",
+      "question": "What were Apple's iPhone 15 unit sales in its launch quarter?",
+      "category": "insufficient",
+      "gold_chunk_ids": [],
+      "gold_facts": [],
+      "forbidden_claims": [
+        "iPhone 15",
+        "2023 iPhone launch"
+      ]
+    },
+    {
+      "id": "q15",
+      "question": "How did the Federal Reserve's rate hikes in 2022 affect the housing market?",
+      "category": "insufficient",
+      "gold_chunk_ids": [],
+      "gold_facts": [],
+      "forbidden_claims": [
+        "2022 rate hikes",
+        "Fed 2022",
+        "housing market 2022"
+      ]
+    },
+    {
+      "id": "q16",
+      "question": "What were the main causes of the crypto market crash in 2022, including the FTX collapse?",
+      "category": "insufficient",
+      "gold_chunk_ids": [],
+      "gold_facts": [],
+      "forbidden_claims": [
+        "FTX",
+        "crypto crash 2022",
+        "Sam Bankman-Fried"
+      ]
+    }
+  ]
+}

@@ -26,16 +26,16 @@ def get_client() -> anthropic.Anthropic:
 
 
 def compute_cost(
-    input_tokens: int,
-    output_tokens: int,
-    cache_read_tokens: int = 0,
-    cache_write_tokens: int = 0,
+    input: int = 0,
+    output: int = 0,
+    cache_read: int = 0,
+    cache_write: int = 0,
 ) -> float:
     return (
-        input_tokens       * config.COST_INPUT_PER_M       / 1_000_000
-        + output_tokens    * config.COST_OUTPUT_PER_M      / 1_000_000
-        + cache_read_tokens  * config.COST_CACHE_READ_PER_M  / 1_000_000
-        + cache_write_tokens * config.COST_CACHE_WRITE_PER_M / 1_000_000
+        input       * config.COST_INPUT_PER_M       / 1_000_000
+        + output    * config.COST_OUTPUT_PER_M      / 1_000_000
+        + cache_read  * config.COST_CACHE_READ_PER_M  / 1_000_000
+        + cache_write * config.COST_CACHE_WRITE_PER_M / 1_000_000
     )
 
 
