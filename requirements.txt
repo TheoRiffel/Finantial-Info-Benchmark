@@ -1,0 +1,7 @@
+anthropic>=0.92.0
+sentence-transformers>=3.0.0
+qdrant-client>=1.9.0
+rank-bm25>=0.2.2
+datasets>=2.20.0
+tqdm>=4.66.0
+numpy>=1.26.0

@@ -1,0 +1,64 @@
+{
+  "queries": [
+    {
+      "id": "q01",
+      "question": "What are the main risks of investing in the S&P 500?",
+      "expected_topics": ["volatility", "market risk", "concentration", "valuation"],
+      "expected_tickers": ["SPY", "S&P 500"]
+    },
+    {
+      "id": "q02",
+      "question": "How has Apple's stock performed recently?",
+      "expected_topics": ["earnings", "revenue", "stock price"],
+      "expected_tickers": ["AAPL"]
+    },
+    {
+      "id": "q03",
+      "question": "What is the outlook for Tesla?",
+      "expected_topics": ["EV", "production", "growth", "competition"],
+      "expected_tickers": ["TSLA"]
+    },
+    {
+      "id": "q04",
+      "question": "What did the Federal Reserve decide about interest rates?",
+      "expected_topics": ["interest rates", "inflation", "FOMC", "monetary policy"],
+      "expected_tickers": []
+    },
+    {
+      "id": "q05",
+      "question": "What are analysts saying about Nvidia and AI chips?",
+      "expected_topics": ["AI", "GPUs", "data centers", "growth"],
+      "expected_tickers": ["NVDA"]
+    },
+    {
+      "id": "q06",
+      "question": "How is the technology sector performing?",
+      "expected_topics": ["tech stocks", "earnings", "valuation"],
+      "expected_tickers": []
+    },
+    {
+      "id": "q07",
+      "question": "What are the current concerns about inflation?",
+      "expected_topics": ["inflation", "CPI", "prices", "Fed"],
+      "expected_tickers": []
+    },
+    {
+      "id": "q08",
+      "question": "Should I be worried about a recession?",
+      "expected_topics": ["recession", "GDP", "economy", "indicators"],
+      "expected_tickers": []
+    },
+    {
+      "id": "q09",
+      "question": "What is happening with oil prices?",
+      "expected_topics": ["oil", "crude", "OPEC", "energy"],
+      "expected_tickers": ["XOM", "CVX"]
+    },
+    {
+      "id": "q10",
+      "question": "How has Microsoft's cloud business been doing?",
+      "expected_topics": ["Azure", "cloud", "revenue"],
+      "expected_tickers": ["MSFT"]
+    }
+  ]
+}
