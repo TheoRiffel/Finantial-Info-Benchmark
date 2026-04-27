@@ -1,16 +1,19 @@
-"""Pure Agentic: Claude Haiku with grep_corpus + read_article tools, no pre-retrieval."""
+"""Pure Agentic: Claude Haiku with corpus tools, no pre-retrieval."""
+import re
 import time
 
 import config
 from architectures.base import BaseArchitecture, BenchmarkRun
-from shared.corpus_tools import CorpusIndex, TOOLS
+from shared.corpus_tools import CorpusIndex, TOOLS_AGENTIC
 from shared import llm
+
+_CITED_RE = re.compile(r"\[([^\]]+\.md)\]")
 
 
 class PureAgentic(BaseArchitecture):
     name = "pure_agentic"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._corpus = CorpusIndex()
 
     def load(self) -> None:
@@ -19,7 +22,7 @@ class PureAgentic(BaseArchitecture):
     def run_query(self, question: str) -> BenchmarkRun:
         t_total = time.perf_counter()
         client = llm.get_client()
-        system_blocks = llm.build_cached_system()
+        system_blocks = llm.build_cached_system(llm.AGENTIC_SYSTEM_PROMPT)
 
         messages = [{"role": "user", "content": question}]
         cumulative = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
@@ -28,11 +31,15 @@ class PureAgentic(BaseArchitecture):
         answer = ""
 
         for _ in range(config.AGENTIC_MAX_ITERATIONS):
+            if tool_calls >= config.AGENTIC_MAX_TOOL_CALLS:
+                answer = f"[tool call limit reached] {answer}"
+                break
+
             response = client.messages.create(
                 model=config.ANTHROPIC_MODEL,
                 max_tokens=2048,
                 system=system_blocks,
-                tools=TOOLS,
+                tools=TOOLS_AGENTIC,
                 messages=messages,
             )
             cumulative = llm.add_usage(cumulative, llm.extract_usage(response))
@@ -48,11 +55,10 @@ class PureAgentic(BaseArchitecture):
                     if block.type == "tool_use":
                         tool_calls += 1
                         result = self._corpus.run_tool(block.name, block.input)
-                        # Track which articles were actually read
-                        if block.name == "read_article":
-                            fname = block.input.get("filename", "")
-                            if fname and fname not in accessed_ids:
-                                accessed_ids.append(fname)
+                        if block.name in ("read_document", "read_section"):
+                            doc_id = block.input.get("doc_id", "")
+                            if doc_id and doc_id not in accessed_ids:
+                                accessed_ids.append(doc_id)
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
@@ -60,16 +66,19 @@ class PureAgentic(BaseArchitecture):
                         })
                 messages.append({"role": "user", "content": tool_results})
             else:
-                # Unexpected stop reason — extract any text and exit
                 answer = next((b.text for b in response.content if b.type == "text"), "")
                 break
         else:
             answer = next((b.text for b in response.content if b.type == "text"), "")
             answer = f"[max iterations reached] {answer}"
 
+        # Extract [filename.md] citations from the final answer
+        retrieved_ids = list(dict.fromkeys(_CITED_RE.findall(answer)))
+
         total_time = time.perf_counter() - t_total
         return BenchmarkRun(
             answer=answer,
+            retrieved_ids=retrieved_ids,
             accessed_ids=accessed_ids,
             latency={"retrieval": 0.0, "generation": total_time, "total": total_time},
             tokens=cumulative,

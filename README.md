@@ -1,25 +1,25 @@
 # RAG Benchmark
 
-Compares three retrieval-augmented generation architectures on 10 financial Q&A queries.
+Compares three retrieval-augmented generation architectures on financial Q&A queries.
 All LLM calls use **Claude Haiku 4.5** (`claude-haiku-4-5`) via the Anthropic API.
 
 ## Architectures
 
 | Name | Description |
 |---|---|
-| `pure_rag` | Hybrid search (dense + BM25 + RRF) → cross-encoder rerank → single Haiku call with context |
-| `pure_agentic` | Haiku with `grep_corpus` + `read_article` tools; agent iterates until it has enough context |
+| `rag` | Hybrid search (dense + BM25 + RRF) → cross-encoder rerank → single Haiku call with context |
+| `agentic` | Haiku with `grep_corpus` + `read_article` tools; agent iterates until it has enough context |
 | `hybrid` | RAG pre-retrieval supplies initial context; agent can use tools to supplement |
 
 ## Prerequisites
 
-1. **Existing index** — the benchmark reads the index built by RAG_finances:
+1. **Data** — corpus and index must exist at `data/corpus` and `data/index` (project root):
    ```
-   cd ../RAG_finances
-   python -m ingestion.download_data   # downloads ~473 articles
-   python -m ingestion.indexer         # builds Qdrant DB + BM25 index
+   data/
+   ├── corpus/   # markdown articles
+   └── index/    # qdrant_db/, bm25.pkl, chunks.pkl
    ```
-   Override locations with env vars `CORPUS_DIR` and `INDEX_DIR`.
+   Override with env vars `CORPUS_DIR` and `INDEX_DIR` if they live elsewhere.
 
 2. **Anthropic API key**:
    ```bash
@@ -34,37 +34,55 @@ All LLM calls use **Claude Haiku 4.5** (`claude-haiku-4-5`) via the Anthropic AP
 ## Running
 
 ```bash
+# Ask a single question (defaults to rag; use --architectures to pick)
+python scripts/run_benchmark.py --query "What was Abbott's Q4 2017 dividend?"
+python scripts/run_benchmark.py --query "..." --architectures agentic
+python scripts/run_benchmark.py --query "..." --architectures rag hybrid  # side-by-side
+
 # Full benchmark — all 3 architectures, with LLM judge
 python scripts/run_benchmark.py
 
-# Single architecture
-python scripts/run_benchmark.py --arch rag
-python scripts/run_benchmark.py --arch agentic
-python scripts/run_benchmark.py --arch hybrid
+# Specific architectures
+python scripts/run_benchmark.py --architectures rag hybrid
 
 # Skip LLM judge (faster, no extra API cost)
 python scripts/run_benchmark.py --no-judge
+
+# Skip smoke-test confirmation prompt
+python scripts/run_benchmark.py --no-smoke
 
 # Generate report from latest results
 python scripts/generate_report.py
 ```
 
-Results are written to `results/run_<timestamp>.json`.
+The runner runs a 3-query smoke test per architecture first, prints estimated full-run cost, and asks for confirmation before proceeding. Use `--no-smoke` to skip this.
+
+Results are written to `results/runs/<arch>_<timestamp>.jsonl`.
 The report is written to `REPORT.md`.
+
+## Citations
+
+All architectures cite sources using the actual document filename, e.g.:
+
+> Abbott's quarterly dividend was raised to **$0.280 per share** [00341_abbott-boosts-dividend.md].
+
+The filename is the key shown at the start of each retrieved document block in the context.
 
 ## Metrics
 
 | Metric | Source | Description |
 |---|---|---|
-| Topic coverage | heuristic | % of expected topics found in the answer |
-| Ticker recall | heuristic | % of expected stock tickers mentioned |
-| Citation count | heuristic | Number of `[doc_N]` citations in the answer |
-| Judge score (/5) | LLM | Avg of completeness, groundedness, citation quality, conciseness |
+| Faithfulness | LLM judge | 0–1: fraction of answer's claims supported by retrieved context |
+| Correctness | LLM judge | 0–1: fraction of gold facts present in the answer |
+| Hallucination count | LLM judge | Number of specific claims not found in context |
+| Refusal correct | LLM judge | Whether the model correctly refused unanswerable questions |
 | Retrieval time | timing | Seconds for search + rerank (RAG / hybrid only) |
 | Total time | timing | Wall-clock seconds per query |
 | Input / output tokens | API | Raw token counts from Anthropic usage |
 | Cache read tokens | API | Tokens served from prompt cache |
 | Cost | computed | USD cost per query at Haiku 4.5 pricing |
+
+Judge results are cached in `results/.judge_cache.json` (keyed by question+answer hash), so re-runs don't re-score identical answers.
 
 ## Project Structure
 
@@ -72,24 +90,34 @@ The report is written to `REPORT.md`.
 rag-benchmark/
 ├── config.py              # All tunable parameters
 ├── requirements.txt
+├── data/
+│   ├── corpus/            # Markdown articles (one file per document)
+│   └── index/             # qdrant_db/, bm25.pkl, chunks.pkl
 ├── architectures/
 │   ├── base.py            # BenchmarkRun dataclass + abstract BaseArchitecture
 │   ├── pure_rag.py
 │   ├── pure_agentic.py
 │   └── hybrid.py
 ├── benchmark/
-│   ├── eval_set.json      # 10 financial queries with expected topics/tickers
-│   ├── runner.py          # Orchestrates runs, calls judge, saves JSON
-│   └── judge.py           # LLM-as-judge (Haiku 4.5)
+│   ├── eval_set_v2.json   # 20 financial queries across 4 categories (default)
+│   ├── eval_set.json      # Original 10-query eval set (fallback)
+│   ├── runner.py          # Orchestrates runs, calls judge, saves JSONL
+│   ├── judge.py           # LLM-as-judge via tool use (Haiku 4.5)
+│   └── metrics.py         # compute_aggregate / compute_by_category helpers
 ├── shared/
 │   ├── chunker.py         # Structural markdown chunker
 │   ├── search.py          # HybridSearcher + Reranker
 │   ├── corpus_tools.py    # CorpusIndex + tool schemas for agentic architectures
 │   └── llm.py             # Anthropic client wrapper (caching + cost tracking)
-├── results/               # run_<timestamp>.json files
+├── results/
+│   ├── runs/              # <arch>_<timestamp>.jsonl from full benchmark runs
+│   ├── plots/             # PNG plots generated by generate_report.py
+│   └── .judge_cache.json  # Cached judge scores
 ├── scripts/
-│   ├── run_benchmark.py
-│   └── generate_report.py
+│   ├── run_benchmark.py   # Main entry point
+│   ├── generate_report.py # Builds REPORT.md + plots from results/
+│   ├── generate_eval.py   # Generates eval_set_v2.json via Haiku
+│   └── build_index.py     # Builds INDEX.md corpus summaries via Haiku
 └── REPORT.md              # Auto-generated comparison report
 ```
 

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Data (large corpus + binary index files)
+data/
+
+# Benchmark results
+results/runs/
+results/smoke/
+results/plots/
+results/.judge_cache.json
+
+# Environment
+.env
+*.env
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Notes
+notes/

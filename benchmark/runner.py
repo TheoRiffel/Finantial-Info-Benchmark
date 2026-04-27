@@ -11,11 +11,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rich.console import Console
+from rich.text import Text
+
 import config
 from benchmark.judge import judge
 
 if TYPE_CHECKING:
     from architectures.base import BaseArchitecture
+
+console = Console()
 
 RUNS_DIR = config.ROOT / "results" / "runs"
 RUNS_DIR.mkdir(parents=True, exist_ok=True)
@@ -53,12 +58,16 @@ def run_benchmark(
     rows: list[dict] = []
 
     for q in queries:
-        print(f"\n  [{q['id']}] [{q.get('category', '?')}] {q['question'][:65]}")
+        qid = q["id"]
+        cat = q.get("category", "?")
+        question = q["question"][:65]
+        console.print(f"  [dim]{qid}[/dim]  [bold cyan]{cat}[/bold cyan]  {question}")
+
         try:
             run = arch.run_query(q["question"])
             row = asdict(run)
         except Exception as exc:
-            print(f"    ERROR: {exc}")
+            console.print(f"    [bold red]ERROR[/bold red] {exc}")
             row = {
                 "answer": "", "retrieved_ids": [], "accessed_ids": [],
                 "latency": {}, "tokens": {}, "cost_usd": 0.0,
@@ -66,7 +75,7 @@ def run_benchmark(
             }
 
         row.update({
-            "query_id":         q["id"],
+            "query_id":         qid,
             "question":         q["question"],
             "category":         q.get("category", ""),
             "gold_chunk_ids":   q.get("gold_chunk_ids", []),
@@ -93,21 +102,38 @@ def run_benchmark(
     return rows
 
 
+def _score_style(v: float) -> str:
+    if v >= 0.8:
+        return "green"
+    if v >= 0.5:
+        return "yellow"
+    return "red"
+
+
 def _print_row(row: dict) -> None:
     lat = row.get("latency", {})
     tok = row.get("tokens", {})
     j   = row.get("judge", {})
-    parts = [f"    {lat.get('total', 0):.1f}s"]
+
+    line = Text("    ")
+    line.append(f"{lat.get('total', 0):.1f}s", style="dim")
+
     if j:
-        parts += [
-            f"faith={j.get('faithfulness', 0):.2f}",
-            f"corr={j.get('correctness', 0):.2f}",
-            f"hall={j.get('hallucination_count', 0)}",
-        ]
+        faith = j.get("faithfulness", 0)
+        corr  = j.get("correctness", 0)
+        hall  = j.get("hallucination_count", 0)
+        line.append("  faith=", style="dim")
+        line.append(f"{faith:.2f}", style=_score_style(faith))
+        line.append("  corr=", style="dim")
+        line.append(f"{corr:.2f}", style=_score_style(corr))
+        line.append(f"  hall={hall}", style="dim")
     else:
-        parts.append(f"tokens={tok.get('input', 0)}+{tok.get('output', 0)}")
-    parts.append(f"cost=${row.get('cost_usd', 0):.4f}")
-    print("  ".join(parts))
+        inp = tok.get("input", 0)
+        out = tok.get("output", 0)
+        line.append(f"  {inp}+{out} tok", style="dim")
+
+    line.append(f"  ${row.get('cost_usd', 0):.4f}", style="dim")
+    console.print(line)
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
@@ -117,6 +143,7 @@ def save_jsonl(rows: list[dict], arch_name: str) -> Path:
     path = RUNS_DIR / f"{arch_name}_{ts}.jsonl"
     with open(path, "w") as f:
         for row in rows:
+            row = {"arch": arch_name, **row}
             f.write(json.dumps(row, default=str) + "\n")
-    print(f"  Saved → {path}")
+    console.print(f"  [dim]saved → {path}[/dim]")
     return path

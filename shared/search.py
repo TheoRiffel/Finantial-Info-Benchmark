@@ -3,6 +3,17 @@
 Ported from RAG_finances retrieval/hybrid_search.py + retrieval/reranker.py.
 Reads the existing index from config.INDEX_DIR (defaults to RAG_finances data).
 """
+import logging
+import os
+import warnings
+
+# Suppress library noise before sentence-transformers / transformers are imported.
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+warnings.filterwarnings("ignore", message=".*unauthenticated.*", category=UserWarning)
+for _log in ("sentence_transformers", "transformers", "huggingface_hub"):
+    logging.getLogger(_log).setLevel(logging.ERROR)
+
 import pickle
 import re
 from dataclasses import dataclass

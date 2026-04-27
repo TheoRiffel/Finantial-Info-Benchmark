@@ -5,8 +5,8 @@ import os
 ROOT = Path(__file__).parent
 
 # Corpus and index — defaults reuse the existing RAG_finances data
-CORPUS_DIR = Path(os.getenv("CORPUS_DIR", str(ROOT.parent / "RAG_finances" / "data" / "corpus")))
-INDEX_DIR  = Path(os.getenv("INDEX_DIR",  str(ROOT.parent / "RAG_finances" / "data" / "index")))
+CORPUS_DIR = Path(os.getenv("CORPUS_DIR", str(ROOT / "data" / "corpus")))
+INDEX_DIR  = Path(os.getenv("INDEX_DIR",  str(ROOT / "data" / "index")))
 
 # Embedding / reranker models (same as RAG_finances so the existing index is reusable)
 EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5"
@@ -32,6 +32,8 @@ MAX_CONTEXT_TOKENS = 6000
 
 # Agentic loop iteration cap
 AGENTIC_MAX_ITERATIONS = 8
+# Hard limit on tool calls per query (enforced in agentic / hybrid)
+AGENTIC_MAX_TOOL_CALLS = 10
 
 # Haiku 4.5 pricing (USD / 1M tokens)
 COST_INPUT_PER_M       = 1.00
